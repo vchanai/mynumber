@@ -1,0 +1,965 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numerology Chart (Interactive)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* --- PALETTE --- */
+            --bg-color: #ffffff;        
+            --color-dark-grey: #535459;
+            --color-box-grey: #75777d;
+            --color-med-grey: #8C9095;
+            --color-light-grey: #C6C8CC;
+            --color-pink-accent: #F2D5D0;
+            --color-pink-bg: #fdf6f5; /* Light pink background for boxes */
+            
+            /* --- ASSIGNMENTS --- */
+            --triangle-color: var(--color-pink-accent);  
+            --box-bg: var(--color-box-grey);          
+            --text-main: var(--color-dark-grey); 
+            --text-box: #ffffff;        
+            --input-bg: #f7f7f7; 
+
+            /* DESKTOP DEFAULTS */
+            --box-size: 50px; 
+            --font-size-box: 26px;
+            --radius: 12px; 
+            --triangle-width: 180px; 
+            --triangle-height: 280px;
+            --triangle-top: 65px;
+            --gap-wide: 30px;
+            --gap-narrow: 10px;
+            --cluster-gap: 40px;
+        }
+
+        body {
+            font-family: 'Nunito', "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 10px; 
+        }
+
+        h1 {
+            font-weight: 700; 
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        /* --- INPUT SECTION --- */
+        .input-section {
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            z-index: 10;
+            background: #fff; 
+            padding: 20px 25px;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
+            border: 1px solid #eee;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 8px 15px;
+            border-radius: 15px;
+            border: 1px solid var(--color-light-grey);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .date-field {
+            border: none;
+            text-align: center;
+            font-family: 'Nunito', sans-serif;
+            font-size: 18px;
+            color: var(--text-main);
+            outline: none;
+            background: transparent;
+            padding: 5px 0;
+            width: 100%;
+        }
+
+        .separator {
+            font-weight: bold;
+            color: var(--color-med-grey);
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 12px 40px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            background-color: var(--triangle-color); 
+            color: var(--color-dark-grey); 
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(242, 213, 208, 0.6); 
+            width: 100%;
+        }
+
+        button:hover {
+            filter: brightness(0.95); 
+            transform: translateY(-2px);
+        }
+
+        /* --- CHART CONTAINER --- */
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+            padding-bottom: 50px; 
+            width: 100%;
+            max-width: 600px;
+            overflow-x: hidden; 
+        }
+
+        /* TRIANGLE BACKGROUND */
+        .triangle-bg {
+            position: absolute;
+            top: var(--triangle-top); 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: var(--triangle-width) solid transparent;
+            border-right: var(--triangle-width) solid transparent;
+            border-top: var(--triangle-height) solid var(--triangle-color);
+            z-index: 0; 
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* --- TOP ROWS SPACING --- */
+        .row-date { 
+            margin-bottom: 40px; 
+            gap: var(--gap-wide); 
+            font-size: 28px;
+            font-weight: 700; 
+            color: var(--text-main); 
+        }
+        
+        .row-1 { margin-bottom: 20px; gap: var(--gap-wide); }
+        .row-2 { margin-bottom: 20px; gap: 25px; }
+        .row-3 { margin-bottom: 15px; }
+
+        /* --- BOTTOM CLUSTERS CONTAINER --- */
+        .bottom-clusters {
+            display: flex;
+            justify-content: center;
+            gap: var(--cluster-gap); 
+            width: 100%;
+            z-index: 2;
+            margin-top: 10px;
+            align-items: flex-start; 
+        }
+
+        .cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cluster-top {
+            display: flex;
+            gap: var(--gap-narrow);
+            margin-bottom: var(--gap-narrow);
+        }
+
+        #cluster-center {
+            margin-top: 90px; 
+        }
+
+        /* --- BOX STYLING --- */
+        .num-box {
+            width: var(--box-size);
+            height: var(--box-size);
+            background-color: var(--box-bg); 
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size-box);
+            font-weight: 400; 
+            color: var(--text-box);
+            flex-shrink: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        
+        .pair-group {
+            display: flex;
+            gap: var(--gap-narrow); 
+            align-items: center;
+        }
+
+        .row-date .date-text {
+            font-size: 32px;
+            padding: 0 5px;
+            min-width: 40px; 
+            text-align: center;
+        }
+        
+        /* --- COMBO SECTION --- */
+        .combo-section {
+            margin: 20px auto;
+            background: #fff; 
+            border: 1px solid #eee;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            color: var(--text-main);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .combo-section h3 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--color-dark-grey);
+            margin-bottom: 25px;
+        }
+
+        .combo-group {
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--color-light-grey);
+            padding-bottom: 15px;
+        }
+
+        .combo-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        /* New 3-Column Row */
+        .three-col-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--color-light-grey);
+            padding-bottom: 15px;
+        }
+
+        .col-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1; 
+        }
+
+        .combo-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--color-med-grey);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .col-item .combo-title {
+            min-height: 36px; 
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .combo-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .combo-pill {
+            background-color: var(--input-bg);
+            border: 1px solid var(--color-light-grey);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-family: 'Nunito', monospace;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text-main);
+            cursor: pointer; /* Indicates clickability */
+            transition: all 0.2s ease;
+        }
+
+        .combo-pill:hover {
+            transform: scale(1.05);
+            background-color: #f0f0f0;
+            border-color: var(--color-med-grey);
+        }
+
+        .root-pill {
+            background-color: var(--color-pink-accent);
+            border-color: var(--color-pink-accent);
+            color: #555;
+            font-size: 22px;
+            padding: 8px 20px;
+        }
+
+        .highlight-pill {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            color: #444;
+        }
+
+        /* --- EXPLANATION SECTION --- */
+        .explanation-section {
+            display: none; /* Hidden by default */
+            margin: 0 auto 40px auto;
+            background: #fff; 
+            border: 1px solid #eee;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            color: var(--text-main);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .exp-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--color-pink-accent);
+        }
+
+        .exp-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-dark-grey);
+            letter-spacing: 2px;
+        }
+        
+        .exp-label {
+            font-size: 14px;
+            color: var(--color-med-grey);
+            text-transform: uppercase;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .exp-main-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #444;
+            font-weight: 700; /* Bold main text */
+        }
+
+        /* UPDATED STYLING FOR WORK & LOVE SECTIONS */
+        .exp-extra-section {
+            margin-bottom: 20px;
+            background-color: var(--color-pink-bg); /* Light Pink Background */
+            border-left: 4px solid var(--color-pink-accent); /* Darker Pink Border */
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0; /* Rounded right corners */
+        }
+        
+        .exp-extra-title {
+            font-weight: 700;
+            color: var(--color-dark-grey);
+            margin-bottom: 8px;
+            display: block;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+        
+        .exp-extra-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        /* Spiritual Box (Uses same style) */
+        .exp-spiritual-box {
+            background-color: var(--color-pink-bg);
+            border-left: 4px solid var(--color-pink-accent);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 25px;
+        }
+
+        .exp-subtitle {
+            font-weight: 700;
+            color: var(--color-dark-grey);
+            margin-bottom: 10px;
+            display: block;
+            font-size: 15px;
+        }
+
+        .exp-spiritual-text {
+            font-size: 15px;
+            line-height: 1.6;
+            font-style: italic;
+            color: #666;
+        }
+
+        .exp-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .action-icon {
+            font-size: 20px;
+            min-width: 25px;
+            text-align: center;
+            padding-top: 2px;
+        }
+
+        .action-content {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .action-title {
+            font-weight: 700;
+            color: var(--color-dark-grey);
+            margin-right: 5px;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 600px) {
+            :root {
+                --box-size: 32px; 
+                --font-size-box: 18px;
+                --radius: 8px;
+                --triangle-width: 130px;
+                --triangle-height: 200px;
+                --triangle-top: 50px;
+                --gap-wide: 15px;
+                --gap-narrow: 5px;
+                --cluster-gap: 15px;
+            }
+            .row-date { margin-bottom: 25px; font-size: 20px; }
+            .row-date .date-text { font-size: 22px; }
+            #cluster-center { margin-top: 60px; }
+            .row-1 { margin-bottom: 15px; }
+            .row-2 { margin-bottom: 15px; }
+            
+            .combo-title {
+                font-size: 12px; 
+                letter-spacing: 0.5px;
+            }
+
+            .exp-number { font-size: 28px; }
+            .explanation-section { padding: 20px; }
+        }
+    </style>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script></head>
+<body>
+
+    <h1>Numerology Chart</h1>
+
+    <div class="input-section">
+        <div class="date-inputs">
+            <input type="number" id="dayInput" class="date-field" placeholder="DD" min="1" max="31">
+            <span class="separator">/</span>
+            <input type="number" id="monthInput" class="date-field" placeholder="MM" min="1" max="12">
+            <span class="separator">/</span>
+            <input type="number" id="yearInput" class="date-field" placeholder="YYYY" min="1900" max="2100">
+        </div>
+        <button id="calculateBtn">Calculate</button>
+    </div>
+
+    <div id="resultArea" style="display:none; width: 100%; flex-direction: column; align-items: center;">
+        <div class="chart-container">
+            <div class="triangle-bg"></div>
+            <div class="row row-date" id="row-date"></div>
+            <div class="row row-1" id="row-1"></div>
+            <div class="row row-2" id="row-2"></div>
+            <div class="row row-3" id="row-3"></div>
+            <div class="bottom-clusters">
+                <div class="cluster" id="cluster-left"></div>
+                <div class="cluster" id="cluster-center"></div>
+                <div class="cluster" id="cluster-right"></div>
+            </div>
+        </div>
+
+        <div class="combo-section">
+            <h3>Combinations</h3>
+            <p style="text-align:center; font-size:13px; color:#999; margin-bottom:20px;">(Click a number to view details)</p>
+            
+            <!-- 1. Root Number -->
+            <div class="combo-group">
+                <div class="combo-title">Root Number</div>
+                <div class="combo-items" id="combo-root"></div>
+            </div>
+
+            <!-- 2. ROW: Subconscious / Inner World / Missing Number -->
+            <div class="three-col-row">
+                <div class="col-item">
+                    <div class="combo-title">Subconscious</div>
+                    <div class="combo-items" id="combo-subconscious"></div>
+                </div>
+                <div class="col-item">
+                    <div class="combo-title">Inner World</div>
+                    <div class="combo-items" id="combo-inner"></div>
+                </div>
+                <div class="col-item">
+                    <div class="combo-title">Missing Number</div>
+                    <div class="combo-items" id="combo-missing"></div>
+                </div>
+            </div>
+
+            <!-- 3. Core Combo -->
+            <div class="combo-group">
+                <div class="combo-title">Core Combo</div>
+                <div class="combo-items" id="combo-core"></div>
+            </div>
+
+            <!-- 4. Other Combos -->
+            <div class="combo-group">
+                <div class="combo-title">Other Combos</div>
+                <div class="combo-items" id="combo-other"></div>
+            </div>
+        </div>
+
+        <!-- EXPLANATION SECTION -->
+        <div id="explanation-section" class="explanation-section">
+            <div class="exp-header">
+                <div class="exp-number" id="exp-number-display"></div>
+                <span class="exp-label" id="exp-type-label"></span>
+            </div>
+            
+            <!-- Main text (Bolded via CSS) -->
+            <div class="exp-main-text" id="exp-main-text"></div>
+
+            <!-- Extra Sections for Root Numbers (Work/Love) -->
+            <div id="exp-extra-container"></div>
+
+            <!-- Spiritual Box (Only shown if content exists) -->
+            <div class="exp-spiritual-box" id="exp-spiritual-box" style="display:none;">
+                <span class="exp-subtitle">靈性啟發</span>
+                <!-- We will use the action items for the specific spiritual points for Root Numbers -->
+                <div class="exp-spiritual-text" id="exp-spiritual-text"></div>
+            </div>
+
+            <div class="exp-actions" id="exp-actions-container">
+                <div class="action-item">
+                    <div class="action-icon">🌱</div>
+                    <div class="action-content">
+                        <span class="action-title">種下種子：</span>
+                        <span id="exp-plant-text"></span>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-content">
+                        <span class="action-title">內心修練：</span>
+                        <span id="exp-heart-text"></span>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <div class="action-icon">⚡</div>
+                    <div class="action-content">
+                        <span class="action-title">調整頻率：</span>
+                        <span id="exp-flash-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Default date
+            document.getElementById('dayInput').value = 13;
+            document.getElementById('monthInput').value = 9;
+            document.getElementById('yearInput').value = 1988;
+
+            const btn = document.getElementById('calculateBtn');
+            if(btn) btn.addEventListener('click', calculateNumerology);
+
+            // --- DATA DICTIONARY FOR 3-DIGIT COMBOS ---
+            const definitions = {
+                 "112": { main: "你為人獨立，有主見，不喜歡依靠別人，這是你很強的特質。做決定時，有時會猶豫，但這也是你溝通圓滑、懂得考慮周全的優點。相信自己的判斷，你會找到適合自己的節奏。", spiritual: "你的獨立是內在力量的展現。每一次你相信自己，都是在為未來累積自信的資本。", plant: "相信自己，等於種下「我可以」的種子，未來會長出更多獨立完成的機會。", heart: "當猶豫時，別急著批評自己。試著把兩個想法都聽完，像朋友一樣給自己建議。", flash: "你圓滑的溝通能力是你的天賦。多用溫和的語氣和自己對話，你會吸引來更和諧的人際關係。" },
+                 "123": { main: "你說話自信，個性比較急，表達直接有權威感。這其實是你的優勢，只要語氣把握好，這樣的表達方式可以為你帶來更多機會與財富。稍微留意一下說話的方式，效果會更好。", spiritual: "你說的話很有力量，每句話都在創造你的現實。善用這份力量，財富和機會自然會來找你。", plant: "你說出的每句好話，都在為豐盛生活鋪路。多說鼓勵人的話，會吸引更多好事發生。", heart: "說話前先停一秒，問自己：「這句話能帶來幫助嗎？」這個小習慣會讓你的表達更有影響力。", flash: "你的自信很棒，試著把這份自信用來支持他人。當你幫助別人成功，成功也會回到你身上。" },
+                 // ... (Rest of your 3-digit definitions would go here) ...
+                 "default": { main: "這是一個充滿潛力的數字組合。它代表著獨特的能量流動，等待你去發掘其中的智慧。", spiritual: "每一個數字都是宇宙給予的提示，靜下心來，你會發現它指引的方向。", plant: "試著在生活中觀察這個數字帶來的同步性。", heart: "感受這個數字帶給你的直覺反應。", flash: "保持開放的心態，接受新的可能性。" }
+            };
+
+            // --- DATA DICTIONARY FOR ROOT NUMBERS (1-9) ---
+            const rootDefinitions = {
+                "1": {
+                    main: "你是天生的開創者與領導者，獨立果斷，擁有強大的內在驅動力。你的優勢在於勇於為自己開闢道路，行動直接而有效率。需要留意的是，過度聚焦於目標時，可能會忽略過程中的細節或他人的感受。學習在堅定與聆聽之間取得平衡，你的領導力將更具影響力。",
+                    work: "在職場中，你「對事不對人」的風格、清晰的邏輯與快速的分析反應，使你成為天生的問題解決者與領頭羊。這讓你能在注重專業與效率的領域中脫穎而出，例如：網絡技術、電子業、工程領域（如工程師、飛機師）、專業職人（如醫生、警察）以及教育培訓等。",
+                    love: "在親密關係中，你的獨立與果斷同樣顯著。你欣賞有主見、能並肩作戰的伴侶，不喜歡過度依賴或糾纏。你的愛直接而務實，習慣用行動代替甜言蜜語。需要注意的是，你的「對事」風格在感情中可能顯得有些強勢或不夠細膩。學習放慢腳步，主動傾聽伴侶的感受，並適時表達內心的柔軟，能讓你的關係在力量與溫情中找到最美的平衡。",
+                    plant: "你每個「勇敢做自己」的決定，都是在為未來種下「自主力量」的果實。同時，請留意你言語（尤其是批評）的種子，它們創造現實的力量極強。",
+                    heart: "你強大的「我執」（自我意識）是推進事業的燃料，但也可能是人際煩惱的根源。練習「無我」的聆聽：在發表意見前，先完整聽完對方的話，彷彿你是一片空無的鏡子，只是映照。這能軟化你的強勢，開啟真正的智慧。",
+                    flash: "宇宙支持有清晰意圖的行動。你的挑戰不在於「行動」，而在於「校準」。在行動前，問問內心：「這個決定是出於恐懼（怕落後、怕被看低），還是出於愛與創造的熱情？」只跟隨後者的頻率行動，你將不再需要「對抗」世界，而是「引領」潮流。"
+                },
+                "2": {
+                    main: "你天生具有協調與合作的天賦，溫柔健談，善於聆聽與陪伴，是團隊中不可或缺的和平使者。你的直覺力強，能細膩地感知周遭氛圍。有時會因過於在意和諧而顯得猶豫，或在關係中渴望更多安全感。請記得，你的感受同樣重要，在配合他人時，也別忘了關照自己的內心。",
+                    work: "你心思細膩、富有同理心與審美眼光的特質，使你在需要高度協作、關懷與美感的工作中如魚得水。你能在團隊中創造和諧，非常適合從事手工藝、藝術創作、美容護理、音樂、幼兒教育、圖書管理或諮商輔導等領域，成為滋養他人心靈的重要角色。",
+                    love: "在感情中，你是天生的陪伴者與支持者，渴望深厚的情感連結與和諧的相處。你細膩體貼，能無微不至地照顧伴侶，但也因此容易將對方的需求置於自己之上，有時會因缺乏安全感而猶豫或情緒波動。學習清晰地表達自己的需要，並在關係中建立健康的界線，能讓你的付出更被珍惜，也讓你在愛中感到更安定、更有力量。",
+                    plant: "你每一次出於真心的傾聽與陪伴，都是在種下「和諧關係」與「貴人緣分」的種子。你所給予的理解，將以意想不到的支持回到你身邊。",
+                    heart: "你的課題在於「平衡」。佛教中的「中道」非常適合你：不極端地犧牲自我，也不固執地維護自我。練習在說「好」之前，先感受內心的真實答案。",
+                    flash: "你的核心頻率是「接納」與「連結」。當你感到不安時，往往是頻率偏移到了「索取認可」或「害怕衝突」。回歸中心，專注於「我願意理解」而非「我需要被認可」，你會自然散發出安定人心的磁場。"
+                },
+                // ... (Rest of your Root definitions 3-9) ...
+            };
+
+            // --- NEW DATABASE FOR MISSING NUMBERS ---
+            // This content is SPECIFIC to Missing Numbers and distinct from Root Numbers
+            const missingDefinitions = {
+                "1": {
+                    main: "【缺數 1】代表你可能缺乏獨立自主的能量。你可能習慣依賴他人做決定，或者在需要挺身而出時感到自信不足。你的課題是學習相信自己的判斷，培養「我能行」的信念。",
+                    spiritual: "缺失的 1 號能量提醒你，你的靈魂渴望體驗獨立。每一次你獨自面對挑戰，都是在填補這塊拼圖。",
+                    plant: "從小事開始練習自己做決定，不尋求他人意見，等於種下「獨立」的種子。",
+                    heart: "當想要依賴時，溫柔地告訴自己：「我有能力處理這件事。」",
+                    flash: "調整頻率至「自我授權」。你不需要外在的許可證，你的存在本身就是力量。"
+                },
+                "2": {
+                    main: "【缺數 2】代表你可能缺乏合作與細膩的能量。你可能比較自我中心，或者不擅長察言觀色，容易忽略他人的感受。你的課題是學習傾聽，並在關係中展現柔軟的一面。",
+                    spiritual: "缺失的 2 號能量提醒你，世界是由關係組成的。學習與他人共舞，而非獨舞，會讓你的生命更完整。",
+                    plant: "每天專注傾聽一個人說話五分鐘，不插嘴，等於種下「連結」的種子。",
+                    heart: "練習換位思考。問自己：「如果我是他，我現在會有什麼感覺？」",
+                    flash: "調整頻率至「和諧」。柔軟不是軟弱，而是像水一樣能包容萬物的力量。"
+                },
+                "3": {
+                    main: "【缺數 3】代表你可能缺乏表達與創意的能量。你可能不善於表達情感，或者生活過於嚴肅，缺乏樂趣。你的課題是學習像孩子一樣玩耍，並勇敢說出內心的真實想法。",
+                    spiritual: "缺失的 3 號能量提醒你，喜悅是靈魂的本質。不要壓抑你的光芒，讓它透過言語和創意流動出來。",
+                    plant: "嘗試一種新的藝術活動或單純地大笑，等於種下「創造力」的種子。",
+                    heart: "接納自己的情緒，無論好壞。告訴自己：「我有權利表達我的感受。」",
+                    flash: "調整頻率至「喜悅」。當你快樂時，你就在與宇宙最高的頻率共振。"
+                },
+                "4": {
+                    main: "【缺數 4】代表你可能缺乏穩定與規劃的能量。你可能做事比較隨性，缺乏安全感，或者難以堅持到底。你的課題是學習建立秩序，為生活打下堅實的基礎。",
+                    spiritual: "缺失的 4 號能量提醒你，夢想需要土地才能生根。紀律不是束縛，而是讓夢想成真的容器。",
+                    plant: "整理你的房間或制定一個小計劃並執行，等於種下「秩序」的種子。",
+                    heart: "在感到飄忽不定時，關注你的呼吸和腳底的觸感，讓自己落地。",
+                    flash: "調整頻率至「安穩」。信任過程，一步一腳印，你正在建造屬於你的城堡。"
+                },
+                "5": {
+                    main: "【缺數 5】代表你可能缺乏自由與變通的能量。你可能害怕改變，生活比較一成不變，或者過於壓抑自己。你的課題是學習擁抱未知，勇敢踏出舒適圈。",
+                    spiritual: "缺失的 5 號能量提醒你，生命是流動的。固守舊有模式會阻礙成長，流動才能帶來新的生機。",
+                    plant: "嘗試走一條不同的路回家，或吃一種沒吃過的食物，等於種下「冒險」的種子。",
+                    heart: "面對變化時，將恐懼轉化為好奇。問自己：「這會帶來什麼有趣的新體驗？」",
+                    flash: "調整頻率至「自由」。打破自我設限的框架，你會發現天空比你想像的更廣闊。"
+                },
+                "6": {
+                    main: "【缺數 6】代表你可能缺乏愛與責任的能量。你可能對家庭或承諾感到負擔，或者對自己和他人過於挑剔。你的課題是學習無條件的愛，並在付出中找到快樂。",
+                    spiritual: "缺失的 6 號能量提醒你，愛是宇宙最強大的療癒力量。先學會愛自己，你才能給出真實的愛。",
+                    plant: "真誠地讚美自己和他人，等於種下「愛與接納」的種子。",
+                    heart: "放下對完美的執著。告訴自己：「不完美也是一種美，我接納當下的樣子。」",
+                    flash: "調整頻率至「慈悲」。用愛的眼光看世界，世界也會以愛回應你。"
+                },
+                "7": {
+                    main: "【缺數 7】代表你可能缺乏思考與靈性的能量。你可能過於關注物質世界，忽略了內在的聲音，或者不喜歡獨處。你的課題是學習靜心，探索生命的真理。",
+                    spiritual: "缺失的 7 號能量提醒你，答案往往在內在而非外在。給自己留出獨處的空間，智慧會在靜默中浮現。",
+                    plant: "每天花十分鐘獨處或冥想，等於種下「智慧」的種子。",
+                    heart: "信任你的直覺。當理性無法解答時，聽聽心裡的聲音。",
+                    flash: "調整頻率至「覺知」。從忙碌的「做」轉向寧靜的「在」，你會看見更深的實相。"
+                },
+                "8": {
+                    main: "【缺數 8】代表你可能缺乏力量與豐盛的能量。你可能對金錢或權力有負面看法，或者缺乏企圖心。你的課題是學習正視自己的慾望，並相信自己值得擁有豐盛。",
+                    spiritual: "缺失的 8 號能量提醒你，你是強大的創造者。豐盛是你的天賦權利，不要因為恐懼而拒絕它。",
+                    plant: "為自己設定一個具體的財務目標，等於種下「顯化」的種子。",
+                    heart: "檢視你對金錢的信念。釋放匱乏感，擁抱豐盛的意識。",
+                    flash: "調整頻率至「力量」。站穩你的立場，你擁有改變現實的能力。"
+                },
+                "9": {
+                    main: "【缺數 9】代表你可能缺乏大愛與慈悲的能量。你可能過於計較個人得失，或者難以寬恕他人。你的課題是學習放手，將眼光放遠，服務更大的群體。",
+                    spiritual: "缺失的 9 號能量提醒你，我們都是一體的。當你服務他人時，你也是在服務自己。",
+                    plant: "做一件不求回報的善事，等於種下「無私」的種子。",
+                    heart: "練習寬恕。放下過去的怨恨，讓心靈重獲自由。",
+                    flash: "調整頻率至「完整」。你與宇宙萬物相連，你的愛能溫暖整個世界。"
+                }
+            };
+
+            function reduceToSingleDigit(num) {
+                while (num > 9) {
+                    let sum = 0;
+                    String(num).split('').forEach(digit => sum += parseInt(digit));
+                    num = sum;
+                }
+                return num;
+            }
+
+            function pad(num, size) {
+                num = num.toString();
+                while (num.length < size) num = "0" + num;
+                return num;
+            }
+
+            function joinNums(...args) {
+                return args.join('');
+            }
+
+            // Updated showExplanation to handle different data types
+            function showExplanation(number, dataType) {
+                const section = document.getElementById('explanation-section');
+                const extraContainer = document.getElementById('exp-extra-container');
+                const spiritualBox = document.getElementById('exp-spiritual-box');
+                const actionsContainer = document.getElementById('exp-actions-container');
+                const typeLabel = document.getElementById('exp-type-label');
+                
+                // Reset display areas
+                extraContainer.innerHTML = '';
+                spiritualBox.style.display = 'none';
+                actionsContainer.style.display = 'flex'; // Default show actions
+
+                document.getElementById('exp-number-display').textContent = number;
+
+                // LOGIC BRANCHING BASED ON TYPE
+                if (dataType === 'missing') {
+                    // --- MISSING NUMBER LOGIC ---
+                    typeLabel.textContent = "Missing Number Interpretation";
+                    const data = missingDefinitions[number];
+                    
+                    if (data) {
+                        document.getElementById('exp-main-text').textContent = data.main;
+                        
+                        // Missing numbers show the spiritual box with specific advice
+                        spiritualBox.style.display = 'block';
+                        document.getElementById('exp-spiritual-text').textContent = data.spiritual;
+
+                        // Populate Actions
+                        document.getElementById('exp-plant-text').textContent = data.plant;
+                        document.getElementById('exp-heart-text').textContent = data.heart;
+                        document.getElementById('exp-flash-text').textContent = data.flash;
+                    } else {
+                        document.getElementById('exp-main-text').textContent = "No data available for this missing number.";
+                    }
+
+                } else if (dataType === 'root') {
+                    // --- ROOT NUMBER LOGIC ---
+                    typeLabel.textContent = "Root Number Interpretation";
+                    const data = rootDefinitions[number];
+                    
+                    if (data) {
+                        document.getElementById('exp-main-text').textContent = data.main;
+                        
+                        // Add Work & Love Sections (Specific to Root)
+                        extraContainer.innerHTML = `
+                            <div class="exp-extra-section">
+                                <span class="exp-extra-title">職場與方向</span>
+                                <div class="exp-extra-text">${data.work}</div>
+                            </div>
+                            <div class="exp-extra-section">
+                                <span class="exp-extra-title">情感與關係</span>
+                                <div class="exp-extra-text">${data.love}</div>
+                            </div>
+                        `;
+
+                        // Populate Actions
+                        document.getElementById('exp-plant-text').textContent = data.plant;
+                        document.getElementById('exp-heart-text').textContent = data.heart;
+                        document.getElementById('exp-flash-text').textContent = data.flash;
+                    }
+
+                } else {
+                    // --- COMBO / NORMAL LOGIC ---
+                    typeLabel.textContent = "Combination Interpretation";
+                    const data = definitions[number] || definitions["default"];
+                    
+                    document.getElementById('exp-main-text').textContent = data.main;
+                    
+                    // Show Spiritual Box for 3-digit numbers
+                    if(data.spiritual) {
+                        spiritualBox.style.display = 'block';
+                        document.getElementById('exp-spiritual-text').textContent = data.spiritual;
+                    }
+
+                    document.getElementById('exp-plant-text').textContent = data.plant;
+                    document.getElementById('exp-heart-text').textContent = data.heart;
+                    document.getElementById('exp-flash-text').textContent = data.flash;
+                }
+
+                section.style.display = 'block';
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function calculateNumerology() {
+                document.getElementById('explanation-section').style.display = 'none';
+
+                let d = document.getElementById('dayInput').value;
+                let m = document.getElementById('monthInput').value;
+                let y = document.getElementById('yearInput').value;
+
+                if (!d || !m || !y) {
+                    alert("Please fill in all date fields.");
+                    return;
+                }
+
+                // --- PARSING ---
+                const dayStr = pad(d, 2);
+                const monthStr = pad(m, 2);
+                const yearStr = pad(y, 4);
+
+                const D1 = parseInt(dayStr[0]);
+                const D2 = parseInt(dayStr[1]);
+                const M1 = parseInt(monthStr[0]);
+                const M2 = parseInt(monthStr[1]);
+                const Y1 = parseInt(yearStr[0]);
+                const Y2 = parseInt(yearStr[1]);
+                const Y3 = parseInt(yearStr[2]);
+                const Y4 = parseInt(yearStr[3]);
+
+                // --- TRIANGLE CALCULATIONS ---
+                const A = reduceToSingleDigit(D1 + D2); 
+                const B = reduceToSingleDigit(M1 + M2); 
+                const C = reduceToSingleDigit(Y1 + Y2); 
+                const D = reduceToSingleDigit(Y3 + Y4); 
+
+                const E = reduceToSingleDigit(A + B); 
+                const F = reduceToSingleDigit(C + D); 
+
+                const G = reduceToSingleDigit(E + F); 
+
+                // --- CLUSTER CALCULATIONS ---
+                const H = reduceToSingleDigit(A + E); 
+                const I = reduceToSingleDigit(B + E); 
+                const L = reduceToSingleDigit(H + I); 
+
+                const J = reduceToSingleDigit(C + F); 
+                const K = reduceToSingleDigit(D + F); 
+                const M = reduceToSingleDigit(J + K); 
+
+                const P = reduceToSingleDigit(F + G); 
+                const Q = reduceToSingleDigit(E + G); 
+                const R = reduceToSingleDigit(P + Q); 
+
+                // --- RENDERING VISUAL CHART ---
+                const box = (val) => `<div class="num-box">${val}</div>`;
+                const boxPair = (v1, v2) => `<div class="pair-group">${box(v1)}${box(v2)}</div>`;
+                const buildCluster = (top1, top2, bottom) => `
+                    <div class="cluster-top">${box(top1)}${box(top2)}</div>
+                    <div class="cluster-bottom">${box(bottom)}</div>
+                `;
+
+                document.getElementById('row-date').innerHTML = `
+                    <div class="date-text">${dayStr}</div>
+                    <div class="date-text">${monthStr}</div>
+                    <div class="date-text">${yearStr}</div>
+                `;
+                document.getElementById('row-1').innerHTML = `${boxPair(A, B)}${boxPair(C, D)}`;
+                document.getElementById('row-2').innerHTML = `${box(E)}${box(F)}`;
+                document.getElementById('row-3').innerHTML = `${box(G)}`;
+                
+                document.getElementById('cluster-left').innerHTML = buildCluster(H, I, L);
+                document.getElementById('cluster-center').innerHTML = buildCluster(P, Q, R);
+                document.getElementById('cluster-right').innerHTML = buildCluster(J, K, M);
+
+                // --- COMBO LOGIC ---
+                const root = [G];
+                const subSum = A + D + G;
+                const subconscious = [reduceToSingleDigit(subSum)];
+                const innerSum = E + F + G;
+                const innerWorld = [reduceToSingleDigit(innerSum)];
+
+                const allChartNumbers = [A, B, C, D, E, F, G, H, I, L, J, K, M, P, Q, R];
+                const missingNumbers = [];
+                for(let i = 1; i <= 9; i++) {
+                    if(!allChartNumbers.includes(i)) missingNumbers.push(i);
+                }
+                const missingDisplay = missingNumbers.length > 0 ? missingNumbers : ["/"];
+
+                const core = [joinNums(E, F, G)];
+
+                const other = [
+                    joinNums(A, B, E), 
+                    joinNums(A, E, H), 
+                    joinNums(B, E, I), 
+                    joinNums(E, G, Q), 
+                    joinNums(C, D, F), 
+                    joinNums(C, F, J), 
+                    joinNums(D, F, K), 
+                    joinNums(F, G, P), 
+                    joinNums(H, I, L), 
+                    joinNums(J, K, M), 
+                    joinNums(P, Q, R)
+                ];
+                
+                const uniqueOther = [...new Set(other)];
+
+                // --- FILL COMBO SECTIONS ---
+                // Updated fill function to accept dataType
+                const fill = (id, arr, styleType = 'normal', dataType = 'normal') => {
+                    const container = document.getElementById(id);
+                    container.innerHTML = ''; // Clear previous
+
+                    arr.forEach(item => {
+                        const div = document.createElement('div');
+                        let cls = "combo-pill";
+                        if (styleType === 'root') cls += " root-pill";
+                        if (styleType === 'highlight') cls += " highlight-pill";
+                        
+                        div.className = cls;
+                        div.textContent = item;
+                        
+                        // Add Click Event
+                        if(item !== "/") {
+                            div.onclick = function() {
+                                showExplanation(item.toString(), dataType);
+                            };
+                        }
+                        
+                        container.appendChild(div);
+                    });
+                };
+
+                fill('combo-root', root, 'root', 'root');
+                fill('combo-subconscious', subconscious, 'highlight', 'normal'); // Assuming normal lookup for these
+                fill('combo-inner', innerWorld, 'highlight', 'normal'); // Assuming normal lookup for these
+                
+                // HERE IS THE KEY CHANGE: Passing 'missing' as the dataType
+                fill('combo-missing', missingDisplay, 'highlight', 'missing'); 
+                
+                fill('combo-core', core, 'normal', 'normal');
+                fill('combo-other', uniqueOther, 'normal', 'normal');
+
+                document.getElementById('resultArea').style.display = 'flex';
+            }
+        });
+    </script>
+
+
+</body></html>
