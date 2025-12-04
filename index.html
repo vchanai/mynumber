@@ -17,7 +17,8 @@
             --color-med-grey: #8C9095;
             --color-light-grey: #C6C8CC;
             --color-pink-accent: #F2D5D0;
-            --color-pink-bg: #fdf6f5; /* Light pink background for boxes */
+            --color-pink-hover: #eac0b8; /* Slightly darker pink for hover */
+            --color-pink-bg: #fdf6f5; 
             
             /* --- ASSIGNMENTS --- */
             --triangle-color: var(--color-pink-accent);  
@@ -305,6 +306,7 @@
             justify-content: center;
         }
 
+        /* Generic Pill Style */
         .combo-pill {
             background-color: var(--input-bg);
             border: 1px solid var(--color-light-grey);
@@ -314,16 +316,18 @@
             font-weight: 700;
             font-size: 18px;
             color: var(--text-main);
-            cursor: pointer; /* Indicates clickability */
+            cursor: pointer; 
             transition: all 0.2s ease;
         }
 
+        /* Default Hover (Gray) for standard pills */
         .combo-pill:hover {
             transform: scale(1.05);
             background-color: #f0f0f0;
             border-color: var(--color-med-grey);
         }
 
+        /* --- ROOT PILL STYLES (PINK) --- */
         .root-pill {
             background-color: var(--color-pink-accent);
             border-color: var(--color-pink-accent);
@@ -332,14 +336,27 @@
             padding: 8px 20px;
         }
 
+        /* Root Pill Hover/Active Override */
+        .root-pill:hover, .root-pill:active {
+            background-color: var(--color-pink-hover);
+            border-color: var(--color-pink-hover);
+            color: #555;
+        }
+
+        /* --- HIGHLIGHT PILL STYLES (BLUE) --- */
         .highlight-pill {
             background-color: #e3f2fd;
             border-color: #bbdefb;
             color: #444;
         }
-        
-        /* Removed .missing-pill style to match highlight-pill */
 
+        /* Highlight Pill Hover/Active Override */
+        .highlight-pill:hover, .highlight-pill:active {
+            background-color: #bbdefb; /* Darker blue on hover */
+            border-color: #90caf9;
+            color: #444;
+        }
+        
         /* --- EXPLANATION SECTION --- */
         .explanation-section {
             display: none; /* Hidden by default */
@@ -458,6 +475,56 @@
             font-weight: 700;
             color: var(--color-dark-grey);
             margin-right: 5px;
+        }
+
+        /* --- GLOSSARY SECTION --- */
+        .glossary-section {
+            margin: 20px auto 40px auto;
+            background: #fff; 
+            border: 1px solid #eee;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            color: var(--text-main);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .glossary-section h3 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--color-dark-grey);
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .glossary-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .glossary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .glossary-term {
+            font-weight: 700;
+            color: var(--color-dark-grey);
+            margin-bottom: 8px;
+            font-size: 16px;
+            display: block;
+        }
+
+        .glossary-def {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            margin: 0;
         }
 
         /* --- MOBILE RESPONSIVE --- */
@@ -600,6 +667,42 @@
                 </div>
             </div>
         </div>
+
+        <!-- GLOSSARY SECTION -->
+        <div class="glossary-section">
+            <h3>Glossary</h3>
+            
+            <div class="glossary-item">
+                <span class="glossary-term">Root Number / 根數 / 生命靈數</span>
+                <p class="glossary-def">個人的核心數字，代表與生俱來的本質、天賦與主要性格特質，是解讀生命藍圖的起點。</p>
+            </div>
+
+            <div class="glossary-item">
+                <span class="glossary-term">Subconscious / 潛意識</span>
+                <p class="glossary-def">驅動外在行為與思維模式的深層內在力量，通常不自覺地影響個人的選擇、習慣與情感反應。</p>
+            </div>
+
+            <div class="glossary-item">
+                <span class="glossary-term">Inner World / 內心世界</span>
+                <p class="glossary-def">個人內在的感受、思考、價值觀與精神活動的總和，是自我對話與情感體驗發生的內在空間。</p>
+            </div>
+
+            <div class="glossary-item">
+                <span class="glossary-term">Missing Number / 缺數</span>
+                <p class="glossary-def">在個人生命數字圖（Numerology Chart）中完全未出現的數字。缺數所代表的能量與課題，往往是此生需要主動學習與發展的領域。當這份能量在潛意識或內心世界中偶爾浮現卻未在現實中充分展現時，可能引發內在的矛盾感與拉扯。</p>
+            </div>
+
+            <div class="glossary-item">
+                <span class="glossary-term">Core Combination / 核心數字組合</span>
+                <p class="glossary-def">由生命藍圖中心三角數字構成的關鍵組合，主導了個人的核心性格、人生路徑與主要天賦。</p>
+            </div>
+
+            <div class="glossary-item">
+                <span class="glossary-term">Other Combinations / 其他數字組合</span>
+                <p class="glossary-def">除核心組合外，圖表中其他數字間形成的互動與組合。這些組合代表了個人性格的不同側面、潛在能力以及在特定情境中可能展現的特質。</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -746,7 +849,7 @@
                     love: "在親密關係中，你是無私的奉獻者，渴望建立一個完美、和諧的家庭或伴侶關係。你會細心照顧對方的一切，但同時也可能不自覺地扮演「糾正者」或「規劃者」的角色，出於愛而產生的控制欲有時會讓伴侶感到壓力。學習愛的原意是「如其所是」，而非「如我所願」。放下對關係完美的執著，接納彼此的真實模樣，你的愛將從「令人窒息的關懷」昇華為「最溫暖的港灣」。",
                     plant: "你付出的每一份無條件的愛與關懷，都是在種下「豐盛」與「美麗」的種子。宇宙的法則是：你給出的愛，會以各種形式倍增回流。但請記得，也要為自己種下「自我珍愛」的種子。",
                     heart: "學習「無緣大慈，同體大悲」的境界。你的愛可以超越對特定對象（家人、伴侶）的執著，擴展為對眾生的關懷。同時，理解「各人因果各人擔」，放下替他人背負責任的執念，才是真正的慈悲。",
-                    flash: "你的基礎頻率是「愛」與「和美」。當你陷入挑剔與控制時，頻率已摻雜了「恐懼」與「匱乏」。調整的方法是：每天做一件單純為了讓自己感到美與快樂的小事，重新校準到「接收愛」的頻道。"
+                    flash: "你的基礎頻率是「愛」與「和諧」。當你陷入挑剔與控制時，頻率已摻雜了「恐懼」與「匱乏」。調整的方法是：每天做一件單純為了讓自己感到美與快樂的小事，重新校準到「接收愛」的頻道。"
                 },
                 "7": {
                     main: "你天生人緣好，隨和且幸運，常有貴人相助。你喜歡思考、探究真理，擁有良好的直覺與分析能力。若能成為他人的貴人，你將吸引更多的善意迴流。你的步調有時較為從容，或容易對喜愛的事物深度著迷。學習在追根究底與放鬆享受之間找到平衡，信任生命的流動會帶來最好的安排。",
