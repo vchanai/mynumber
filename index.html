@@ -17,7 +17,7 @@
             --color-med-grey: #8C9095;
             --color-light-grey: #C6C8CC;
             --color-pink-accent: #F2D5D0;
-            --color-pink-hover: #eac0b8; /* Slightly darker pink for hover */
+            --color-pink-hover: #eac0b8; 
             --color-pink-bg: #fdf6f5; 
             
             /* --- ASSIGNMENTS --- */
@@ -53,12 +53,23 @@
 
         h1 {
             font-weight: 700; 
-            margin-bottom: 20px;
+            margin-bottom: 10px; 
             text-transform: uppercase;
             letter-spacing: 2px;
             color: var(--text-main);
             text-align: center;
             font-size: 1.5rem;
+        }
+
+        /* --- UPDATED SUBTITLE STYLE --- */
+        .subtitle {
+            text-align: center;
+            color: var(--text-main); /* Changed to match H1 color */
+            font-size: 1rem;
+            font-weight: 700; /* Changed back to Bold */
+            margin-bottom: 25px;
+            line-height: 1.5;
+            letter-spacing: 1px;
         }
 
         /* --- INPUT SECTION --- */
@@ -318,6 +329,7 @@
             color: var(--text-main);
             cursor: pointer; 
             transition: all 0.2s ease;
+            box-sizing: border-box; /* Ensure border doesn't increase size */
         }
 
         /* Default Hover (Gray) for standard pills */
@@ -325,6 +337,15 @@
             transform: scale(1.05);
             background-color: #f0f0f0;
             border-color: var(--color-med-grey);
+        }
+
+        /* --- ACTIVE STATE (CLICKED) --- */
+        /* This applies a darker border when clicked */
+        .combo-pill.active {
+            border: 2px solid #444 !important; /* Darker, thicker border */
+            background-color: #fff; /* Optional: make background white to pop */
+            transform: scale(1.05); /* Keep it slightly larger */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
 
         /* --- ROOT PILL STYLES (PINK) --- */
@@ -337,10 +358,16 @@
         }
 
         /* Root Pill Hover/Active Override */
-        .root-pill:hover, .root-pill:active {
+        .root-pill:hover {
             background-color: var(--color-pink-hover);
             border-color: var(--color-pink-hover);
             color: #555;
+        }
+
+        /* Specific Active state for Root Pill to ensure border is visible */
+        .root-pill.active {
+            border: 2px solid #d88d80 !important; /* Darker pink/brown border */
+            background-color: var(--color-pink-hover);
         }
 
         /* --- HIGHLIGHT PILL STYLES (BLUE) --- */
@@ -351,10 +378,16 @@
         }
 
         /* Highlight Pill Hover/Active Override */
-        .highlight-pill:hover, .highlight-pill:active {
-            background-color: #bbdefb; /* Darker blue on hover */
+        .highlight-pill:hover {
+            background-color: #bbdefb; 
             border-color: #90caf9;
             color: #444;
+        }
+
+        /* Specific Active state for Highlight Pill */
+        .highlight-pill.active {
+            border: 2px solid #1976d2 !important; /* Darker blue border */
+            background-color: #bbdefb;
         }
         
         /* --- EXPLANATION SECTION --- */
@@ -559,6 +592,12 @@
 <body>
 
     <h1>Numerology Chart</h1>
+    
+    <!-- SUBTITLE (Updated: Bold and same color as H1) -->
+    <div class="subtitle">
+        認識你的生命數字藍圖<br>
+        活出更豐盛真實的自己
+    </div>
 
     <div class="input-section">
         <div class="date-inputs">
@@ -857,7 +896,7 @@
                     love: "在感情中，你隨和、好相處，是令人感到輕鬆愉快的伴侶。你喜歡深度交流與精神共鳴，但有時會因過度分析或沉浸在個人興趣中，而顯得有些疏離或反應慢半拍。你的「打破砂鍋問到底」用在研究事物是優點，用在質問伴侶時則可能造成壓力。學習在親密關係中放下部分理性分析，更多地用心去感受和體驗當下，並明確表達情感需求，能讓你的關係在理性與感性間取得美妙平衡。",
                     plant: "你對知識與真理的每一次真誠探求，都是在種下「智慧」與「洞察力」的種子。你分享的知識與提供的幫助，會為你種下強大的「貴人緣」與「幸運」的果實。",
                     heart: "真正的答案不在外在的知識裡，而在內心的靜默中。你擅長「思辨」，但需要練習「止觀」。定期從頭腦的思考中抽離，進入無思維的靜心，你會下載到更高維的智慧。",
-                    flash: "你的天然頻率是「好奇」與「流動」。當你陷入懷疑論或拖延時，頻率已變得「滯重」。調整的方法是：主動向他人提供一次不帶目的、純粹的幫助（成為他人的貴人），此舉能瞬間打通能量淤塞，調整整體頻率。"
+                    flash: "你的天然頻率是「好奇」與「流動」。當你感到懷疑論或拖延時，頻率已變得「滯重」。調整的方法是：主動向他人提供一次不帶目的、純粹的幫助（成為他人的貴人），此舉能瞬間打通能量淤塞，調整整體頻率。"
                 },
                 "8": {
                     main: "你勤勞務實，擁有強大的執行力、責任感與對成就的渴望。你擅長駕馭資源，在事業上追求權力與影響力，是可靠的實踐者。需要留意的是，巨大的抱負可能帶來壓力，讓情緒變得緊張或強硬。學習在奮鬥的同時，適時放鬆與釋放控制，真正的力量來自於內外的平衡。",
@@ -1149,7 +1188,7 @@
                         let cls = "combo-pill";
                         if (type === 'root') cls += " root-pill";
                         if (type === 'highlight') cls += " highlight-pill";
-                        if (type === 'missing') cls += " highlight-pill"; // Reverted to highlight-pill
+                        if (type === 'missing') cls += " highlight-pill"; 
                         
                         div.className = cls;
                         div.textContent = item;
@@ -1157,6 +1196,11 @@
                         // Add Click Event
                         if(item !== "/") {
                             div.onclick = function() {
+                                // Remove active class from ALL pills
+                                document.querySelectorAll('.combo-pill').forEach(el => el.classList.remove('active'));
+                                // Add active class to THIS pill
+                                div.classList.add('active');
+                                
                                 // Pass the type to showExplanation
                                 showExplanation(item.toString(), type);
                             };
@@ -1169,7 +1213,7 @@
                 fill('combo-root', root, 'root');
                 fill('combo-subconscious', subconscious, 'highlight');
                 fill('combo-inner', innerWorld, 'highlight');
-                fill('combo-missing', missingDisplay, 'missing'); // Use 'missing' type logic, but visual style handled above
+                fill('combo-missing', missingDisplay, 'missing'); 
                 fill('combo-core', core);
                 fill('combo-other', uniqueOther);
 
